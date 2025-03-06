@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.linalg import eigh_tridiagonal
+import scipy.constants as sc
+
+# Constants
+hbar = sc.hbar  # Reduced Planck's constant (set to 1 for simplicity)
+m = 15  # Mass (set to 1 for simplicity)
+w = 2.0  # Harmonic oscillator frequency
+q = 2.0  # Charge of the particle
+E_field = 0.2  # Electric field strength
+B_field = 0.2  # Magnetic field strength
+L = 5  # Spatial domain size
+N = 200  # Number of grid points
+dx = 2 * L / N  # Grid spacing
+
+# Discretized position space
+x = np.linspace(-L, L, N)
+
+# Kinetic energy operator (-hbar^2/2m d^2/dx^2)
+KE_diag = np.full(N, hbar**2 / (m * dx**2))
+KE_offdiag = np.full(N - 1, -hbar**2 / (2 * m * dx**2))
+
+# Potential energy terms
+V_harmonic = 0.5 * m * w**2 * x**2  # Harmonic potential
+V_electric = -q * E_field * x  # Linear electric field potential
+V_magnetic = 0.5 * m * (w**2 + (q * B_field / m)**2) * x**2  # Shift due to B field
+
+# Total potential energy
+V_total = V_harmonic + V_electric + V_magnetic
+
+# Solve the Schrödinger equation
+H_diag = KE_diag + V_total
+H_offdiag = KE_offdiag
+energies, wavefunctions = eigh_tridiagonal(H_diag, H_offdiag)
+
+# Plot energy levels and wavefunctions
+plt.figure(figsize=(10, 6))
+for i in range(5):  # Plot first 5 states
+    plt.plot(x, wavefunctions[:, i] + energies[i], label=f'ψ_{i}(x), E={energies[i]:.2f}')
+
+plt.xlabel("Position x")
+plt.ylabel("Wavefunction Ψ(x) (shifted by energy)")
+plt.title("Quantum Harmonic Oscillator with External Fields")
+plt.legend()
+plt.grid()
+plt.show()
